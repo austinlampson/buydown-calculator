@@ -331,8 +331,7 @@
       </div>
     </div>
     <div class="btns">
-      <a class="btn primary" id="textBtn" href="#">💬 <span id="textLbl">Text me</span></a>
-      <button class="btn ghost" id="copyBtn" type="button">📋 Copy summary</button>
+      <a class="btn primary" id="textBtn" href="https://popl.co/card/01YuoKof/1/dash" target="_blank" rel="noopener">💬 <span id="textLbl">Contact me!</span></a>      <button class="btn ghost" id="copyBtn" type="button">📋 Copy summary</button>
     </div>
   </section>
 </main>
@@ -407,7 +406,7 @@ function applyBranding(){
   $("initials").textContent = CONFIG.initials;
   $("emailLink").textContent = CONFIG.email;
   $("emailLink").href = "mailto:" + CONFIG.email;
-  $("textLbl").textContent = "Text " + first;
+  $("textLbl").textContent = "Contact me!";
   $("footLO").textContent =
     `${CONFIG.name}, ${CONFIG.title}, NMLS #${CONFIG.nmls} · ${CONFIG.team} · ${CONFIG.company}, NMLS #${CONFIG.companyNmls} · ${CONFIG.address}`;
 }
@@ -674,7 +673,7 @@ $("bdSeg").querySelectorAll("button").forEach(b => b.addEventListener("click", (
 
 function toast(msg){ const t = $("toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 1800); }
 
-$("textBtn").addEventListener("click", (e) => {
+$("textBtn").addEventListener("off", (e) => {
   e.preventDefault();
   calc();
   const sep = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent) ? "&" : "?";
