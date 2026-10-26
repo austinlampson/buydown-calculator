@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Seller Credit &amp; Buydown Calculator · The Lampson Team</title>
+<meta name="description" content="See what a seller credit does as a price reduction, temporary buydown, or permanent rate buydown.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ===== BRAND COLORS — change these to your brand ===== */
+  :root{
+    --brand:#13294b;        /* primary (navy) */
+    --brand-2:#1f3d6b;      /* primary, lighter */
+    --accent:#c9a227;       /* accent (gold) */
+    --accent-ink:#13294b;   /* text on accent */
+    --bg:#f3f5f8;
+    --card:#ffffff;
+    --ink:#1a2230;
+    --muted:#5c6778;
+    --line:#e2e6ec;
+    --good:#1d7a4c;
+    --good-bg:#e8f5ee;
+    --warn:#a85a00;
+    --warn-bg:#fff4e0;
+    --bad:#b42318;
+    --radius:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.45;-webkit-text-size-adjust:100%}
+  h1,h2,h3{font-family:"DM Serif Display",Georgia,serif;font-weight:400;margin:0;letter-spacing:.2px}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+  /* Header */
+  header.top{background:var(--brand);color:#fff;padding:14px 0 18px}
+  .brandrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .logo img{max-height:46px;max-width:200px;display:block}
+  .logoText{display:none;font-family:"DM Serif Display",Georgia,serif;font-size:20px;line-height:1.1}
+  .logoText small{display:block;font-family:Inter,sans-serif;font-size:11px;opacity:.8;letter-spacing:.5px;text-transform:uppercase;margin-top:3px}
+  .tagline{font-size:12px;opacity:.85;text-align:right}
+  .hero{margin-top:16px}
+  .hero h1{font-size:28px;line-height:1.15}
+  .hero p{margin:6px 0 0;opacity:.85;font-size:15px}
+  /* Cards */
+  main{padding:16px 0 24px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:0 1px 2px rgba(16,24,40,.04)}
+  .card h2{font-size:21px;margin-bottom:10px;color:var(--brand)}
+  .card h3{font-size:18px;color:var(--brand)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .grid .full{grid-column:1/-1}
+  label{display:block;font-size:13px;font-weight:600;color:var(--muted);margin-bottom:4px}
+  input,select{width:100%;font:inherit;font-size:16px;padding:11px 12px;border:1px solid #cdd3dc;border-radius:10px;background:#fff;color:var(--ink);min-height:44px}
+  input:focus,select:focus{outline:2px solid var(--accent);outline-offset:1px;border-color:var(--accent)}
+  .suffix{position:relative}
+  .suffix span{position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none;font-size:14px}
+  .suffix input{padding-right:30px}
+  .prefix{position:relative}
+  .prefix span{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);pointer-events:none}
+  .prefix input{padding-left:24px}
+  .hint{font-size:12px;color:var(--muted);margin-top:4px}
+  /* Rate chips */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin:4px 0 6px}
+  .chip{border:1px solid #cdd3dc;background:#fff;border-radius:999px;padding:8px 12px;font:inherit;font-size:14px;cursor:pointer;min-height:40px;color:var(--ink)}
+  .chip b{font-weight:700;margin-left:4px}
+  .chip.active{background:var(--brand);border-color:var(--brand);color:#fff}
+  .chip .tag{font-size:10px;text-transform:uppercase;letter-spacing:.4px;background:var(--warn-bg);color:var(--warn);border-radius:6px;padding:1px 5px;margin-left:6px}
+  .chip.active .tag{background:rgba(255,255,255,.2);color:#fff}
+  .status{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .dot{width:8px;height:8px;border-radius:50%;background:#aab;display:inline-block}
+  .dot.live{background:var(--good)}
+  .dot.sample{background:var(--warn)}
+  .banner{background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:10px 12px;font-size:13px;margin:8px 0}
+  details.edit summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--brand);padding:6px 0}
+  .sampleGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-top:6px}
+  /* Credit */
+  .creditRow{display:grid;grid-template-columns:1fr;gap:10px}
+  input[type=range]{padding:0;border:none;min-height:36px;accent-color:var(--brand);background:transparent}
+  .limit{font-size:13px;color:var(--muted);margin-top:6px}
+  .warning{display:none;background:#fdecea;color:var(--bad);border-radius:10px;padding:10px 12px;font-size:14px;margin-top:8px;font-weight:500}
+  .note{display:none;background:var(--warn-bg);color:var(--warn);border-radius:10px;padding:10px 12px;font-size:13px;margin-top:8px}
+  /* Baseline */
+  .baseline{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .stat{background:var(--bg);border-radius:10px;padding:10px}
+  .stat .k{font-size:12px;color:var(--muted)}
+  .stat .v{font-size:19px;font-weight:700;color:var(--brand);margin-top:2px}
+  /* Options */
+  .options{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .opt{display:flex;flex-direction:column;margin-bottom:0}
+  .opt .num{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:13px;margin-right:8px;flex:none}
+  .opt .head{display:flex;align-items:center;margin-bottom:10px}
+  .rows{margin:0;padding:0;list-style:none}
+  .rows li{display:flex;justify-content:space-between;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+  .rows li:last-child{border-bottom:none}
+  .rows li span:first-child{color:var(--muted)}
+  .rows li span:last-child{font-weight:600;text-align:right}
+  .big{font-size:26px;font-weight:700;color:var(--brand);margin:2px 0 6px}
+  .big small{font-size:13px;color:var(--muted);font-weight:500}
+  .pos{color:var(--good)!important}
+  .neg{color:var(--bad)!important}
+  .seg{display:inline-flex;border:1px solid #cdd3dc;border-radius:10px;overflow:hidden;margin-bottom:10px}
+  .seg button{font:inherit;font-size:14px;border:none;background:#fff;padding:8px 14px;cursor:pointer;min-height:40px;color:var(--ink)}
+  .seg button+button{border-left:1px solid #cdd3dc}
+  .seg button.on{background:var(--brand);color:#fff}
+  .assume{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+  .assume input{padding:8px 10px;min-height:38px;font-size:15px}
+  .assume label{font-size:11px}
+  /* Tables */
+  .tablewrap{overflow-x:auto;-webkit-overflow-scrolling:touch;margin-top:10px}
+  table{width:100%;border-collapse:collapse;font-size:14px}
+  th,td{padding:9px 8px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+  th:first-child,td:first-child{text-align:left}
+  thead th{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.3px}
+  tr.best td{background:var(--good-bg)}
+  tr.best td:first-child{box-shadow:inset 4px 0 0 var(--good)}
+  .badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.4px;text-transform:uppercase;background:var(--good);color:#fff;border-radius:6px;padding:2px 6px;margin-left:6px;vertical-align:middle}
+  /* Contact */
+  .contact{display:flex;gap:14px;align-items:center}
+  .headshot{width:84px;height:84px;border-radius:50%;object-fit:cover;flex:none;border:3px solid var(--accent);background:var(--bg)}
+  .initials{display:none;width:84px;height:84px;border-radius:50%;flex:none;border:3px solid var(--accent);background:var(--brand);color:#fff;align-items:center;justify-content:center;font-family:"DM Serif Display",serif;font-size:30px}
+  .who b{display:block;font-size:18px}
+  .who span{display:block;font-size:13px;color:var(--muted)}
+  .btns{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+  .btn{font:inherit;font-weight:600;font-size:15px;border-radius:12px;padding:13px 14px;cursor:pointer;border:1px solid var(--brand);text-align:center;text-decoration:none;min-height:48px;display:flex;align-items:center;justify-content:center;gap:6px}
+  .btn.primary{background:var(--brand);color:#fff}
+  .btn.ghost{background:#fff;color:var(--brand)}
+  .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:10}
+  .toast.show{opacity:1}
+  /* Footer */
+  footer{background:var(--brand);color:rgba(255,255,255,.85);font-size:12px;line-height:1.55;padding:20px 0 calc(28px + env(safe-area-inset-bottom))}
+  footer p{margin:0 0 8px}
+  footer a{color:#fff}
+  .eho{display:inline-flex;align-items:center;gap:6px;font-weight:600;color:#fff}
+  /* Responsive */
+  @media (max-width:900px){.options{grid-template-columns:1fr}}
+  @media (max-width:640px){
+    .baseline{grid-template-columns:1fr 1fr}
+    .hero h1{font-size:24px}
+    .tagline{display:none}
+  }
+  @media (max-width:380px){.grid{grid-template-columns:1fr}.btns{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brandrow">
+      <div class="logo">
+        <img id="logoImg" src="logo.png" alt="The Lampson Team at CrossCountry Mortgage"
+             onerror="this.style.display='none';document.getElementById('logoText').style.display='block'">
+        <div id="logoText" class="logoText"><span data-cfg="team"></span><small data-cfg="companyLine"></small></div>
+      </div>
+      <div class="tagline" data-cfg="tagline"></div>
+    </div>
+    <div class="hero">
+      <h1>Seller Credit &amp; Buydown Calculator</h1>
+      <p>See what the same seller credit does as a price reduction, a temporary buydown, or a permanent rate buydown.</p>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- Scenario -->
+  <section class="card">
+    <h2>The scenario</h2>
+    <div class="grid">
+      <div>
+        <label for="price">Sales price</label>
+        <div class="prefix"><span>$</span><input id="price" inputmode="numeric" value="900,000"></div>
+      </div>
+      <div>
+        <label for="downPct">Down payment</label>
+        <div class="suffix"><input id="downPct" type="number" inputmode="decimal" step="0.5" min="0" max="100" value="20"><span>%</span></div>
+        <div class="hint" id="downAmt"></div>
+      </div>
+      <div>
+        <label for="loanType">Loan type</label>
+        <select id="loanType">
+          <option value="conv">Conventional</option>
+          <option value="fha">FHA</option>
+          <option value="va">VA</option>
+          <option value="jumbo">Jumbo</option>
+        </select>
+      </div>
+      <div>
+        <label for="propUse">Property use</label>
+        <select id="propUse">
+          <option value="primary">Primary residence</option>
+          <option value="second">Second home</option>
+          <option value="inv">Investment</option>
+        </select>
+      </div>
+      <div>
+        <label for="term">Loan term</label>
+        <select id="term">
+          <option value="30">30 years</option>
+          <option value="15">15 years</option>
+        </select>
+      </div>
+      <div>
+        <label for="ccPct">Est. closing costs</label>
+        <div class="suffix"><input id="ccPct" type="number" inputmode="decimal" step="0.25" min="0" max="10" value="2.5"><span>%</span></div>
+        <div class="hint" id="ccAmt"></div>
+      </div>
+
+      <div class="full">
+        <label>Starting note rate · tap an index rate</label>
+        <div class="chips" id="chips"></div>
+        <div class="status" id="rateStatus"><span class="dot"></span> Loading rates…</div>
+        <div class="banner" id="sampleBanner" style="display:none">
+          Live rates are unavailable right now. These are <b>SAMPLE RATES</b> for illustration — edit them below or type a rate.
+        </div>
+        <details class="edit" id="sampleEdit" style="display:none">
+          <summary>Edit sample rates</summary>
+          <div class="sampleGrid" id="sampleGrid"></div>
+        </details>
+      </div>
+      <div class="full">
+        <label for="rate">Note rate</label>
+        <div class="suffix"><input id="rate" type="number" inputmode="decimal" step="0.125" min="0" max="20"><span>%</span></div>
+        <div class="hint" id="rateHint"></div>
+      </div>
+    </div>
+    <div class="note" id="useNote"></div>
+  </section>
+
+  <!-- Seller credit -->
+  <section class="card">
+    <h2>Seller credit</h2>
+    <div class="creditRow">
+      <div class="prefix"><span>$</span><input id="credit" inputmode="numeric" value="20,000" aria-label="Seller credit amount"></div>
+      <input id="creditRange" type="range" min="0" max="90000" step="500" value="20000" aria-label="Seller credit slider">
+    </div>
+    <div class="limit" id="limitLine"></div>
+    <div class="warning" id="limitWarn"></div>
+  </section>
+
+  <!-- Baseline -->
+  <section class="card">
+    <h3 style="margin-bottom:10px">Without a seller credit</h3>
+    <div class="baseline">
+      <div class="stat"><div class="k">Loan amount</div><div class="v" id="bLoan">—</div></div>
+      <div class="stat"><div class="k">Note rate</div><div class="v" id="bRate">—</div></div>
+      <div class="stat"><div class="k">Monthly P&amp;I</div><div class="v" id="bPmt">—</div></div>
+      <div class="stat"><div class="k">Est. closing costs</div><div class="v" id="bCC">—</div></div>
+    </div>
+  </section>
+
+  <!-- Three options -->
+  <div class="options">
+    <section class="card opt">
+      <div class="head"><span class="num">1</span><h3>Price reduction</h3></div>
+      <div class="big" id="prPmt">—<small> /mo</small></div>
+      <ul class="rows">
+        <li><span>New price</span><span id="prPrice">—</span></li>
+        <li><span>New loan</span><span id="prLoan">—</span></li>
+        <li><span>Monthly savings</span><span id="prSave" class="pos">—</span></li>
+        <li><span>Down payment saved</span><span id="prDown">—</span></li>
+        <li><span>Credit left for closing costs</span><span>$0</span></li>
+      </ul>
+    </section>
+
+    <section class="card opt">
+      <div class="head"><span class="num">2</span><h3>Temporary buydown</h3></div>
+      <div class="seg" id="bdSeg" role="group" aria-label="Buydown type">
+        <button data-k="1">1-0</button><button data-k="2" class="on">2-1</button><button data-k="3">3-2-1</button>
+      </div>
+      <div class="big" id="tbPmt">—<small> /mo in year 1</small></div>
+      <ul class="rows">
+        <li><span>Year-1 rate</span><span id="tbRate">—</span></li>
+        <li><span>Year-1 monthly savings</span><span id="tbSave" class="pos">—</span></li>
+        <li><span>Buydown cost</span><span id="tbCost">—</span></li>
+        <li><span id="tbLeftLbl">Credit left over</span><span id="tbLeft">—</span></li>
+      </ul>
+    </section>
+
+    <section class="card opt">
+      <div class="head"><span class="num">3</span><h3>Permanent buydown</h3></div>
+      <div class="assume">
+        <div><label for="ptDrop">Rate drop per point</label><div class="suffix"><input id="ptDrop" type="number" inputmode="decimal" step="0.025" min="0" value="0.25"><span>%</span></div></div>
+        <div><label for="maxPts">Max points</label><input id="maxPts" type="number" inputmode="decimal" step="0.25" min="0" value="4"></div>
+      </div>
+      <div class="big" id="pbPmt">—<small> /mo</small></div>
+      <ul class="rows">
+        <li><span>New rate</span><span id="pbRate">—</span></li>
+        <li><span>Points</span><span id="pbPts">—</span></li>
+        <li><span>Monthly savings</span><span id="pbSave" class="pos">—</span></li>
+        <li><span>Cost</span><span id="pbCost">—</span></li>
+        <li><span id="pbLeftLbl">Credit left for closing costs</span><span id="pbLeft">—</span></li>
+      </ul>
+      <div class="hint">Assumes 1 point ≈ <span id="ptDropTxt">0.25%</span> rate reduction, rounded to the nearest 0.125%. Actual pricing varies.</div>
+    </section>
+  </div>
+
+  <!-- Temp buydown schedule -->
+  <section class="card" style="margin-top:14px">
+    <h3><span id="schedTitle">2-1</span> buydown · year by year</h3>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Year</th><th>Rate</th><th>Monthly P&amp;I</th><th>Monthly savings</th><th>Annual savings</th></tr></thead>
+        <tbody id="schedBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Comparison -->
+  <section class="card">
+    <h2>Side-by-side</h2>
+    <div class="tablewrap">
+      <table>
+        <thead><tr><th>Option</th><th>Year-1 payment</th><th>Payment after buydown</th><th>5-yr payment savings</th><th>Credit left for closing</th></tr></thead>
+        <tbody id="cmpBody"></tbody>
+      </table>
+    </div>
+    <div class="hint" id="cmpNote" style="margin-top:8px"></div>
+  </section>
+
+  <!-- Contact -->
+  <section class="card">
+    <div class="contact">
+      <img id="headshot" class="headshot" src="headshot.jpg" alt=""
+           onerror="this.style.display='none';document.getElementById('initials').style.display='flex'">
+      <div id="initials" class="initials"></div>
+      <div class="who">
+        <b data-cfg="name"></b>
+        <span data-cfg="titleLine"></span>
+        <span data-cfg="team"></span>
+        <span><a id="emailLink" href="#"></a></span>
+      </div>
+    </div>
+    <div class="btns">
+      <a class="btn primary" id="textBtn" href="#">💬 <span id="textLbl">Text me</span></a>
+      <button class="btn ghost" id="copyBtn" type="button">📋 Copy summary</button>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p><b>For illustration only.</b> This is not a rate quote, loan approval, or commitment to lend. Payments shown are principal and interest only and do not include taxes, homeowners insurance, mortgage insurance, HOA dues, FHA upfront MIP, or VA funding fee. Index rates are national averages from Mortgage News Daily, not an offer; your actual rate, points, and program eligibility depend on credit, property, loan amount, and lender guidelines. Seller concession limits shown are general guidelines; program and investor rules govern. Buydown costs are estimates.</p>
+    <p id="footLO"></p>
+    <p><span class="eho">⌂ Equal Housing Opportunity</span> · <a href="https://www.nmlsconsumeraccess.org" target="_blank" rel="noopener">nmlsconsumeraccess.org</a></p>
+  </div>
+</footer>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =================== YOUR BRANDING — edit here =================== */
+const CONFIG = {
+  name:        "Austin Lampson",
+  title:       "SVP of Lending",
+  nmls:        "517060",
+  team:        "The Lampson Team",
+  company:     "CrossCountry Mortgage, LLC",
+  division:    "CCM²",
+  companyNmls: "3029",
+  cell:        "8058697100",          // digits only — used by the "Text" button
+  email:       "austin.lampson@ccm.com",
+  address:     "800 Miramonte Drive Ste. 270, Santa Barbara, CA 93109",
+  tagline:     "Your Ally In The Process",
+  initials:    "AL"
+};
+
+/* Sample rates — used only if live rates can't load. Clearly labeled on the page. */
+const SAMPLE_RATES = { conv30: 6.25, conv15: 5.625, fha30: 5.875, va30: 5.75, jumbo30: 6.375 };
+/* ================================================================= */
+
+const CHIPS = [
+  { key:"conv30",  label:"30-yr Fixed", type:"conv",  term:30, mnd:"30 Yr. Fixed" },
+  { key:"conv15",  label:"15-yr Fixed", type:"conv",  term:15, mnd:"15 Yr. Fixed" },
+  { key:"fha30",   label:"FHA",         type:"fha",   term:30, mnd:"30 Yr. FHA" },
+  { key:"va30",    label:"VA",          type:"va",    term:30, mnd:"30 Yr. VA" },
+  { key:"jumbo30", label:"Jumbo",       type:"jumbo", term:30, mnd:"30 Yr. Jumbo" },
+];
+const TYPE_NAME = { conv:"Conventional", fha:"FHA", va:"VA", jumbo:"Jumbo" };
+const USE_NAME  = { primary:"Primary", second:"Second home", inv:"Investment" };
+
+const $ = (id) => document.getElementById(id);
+const num = (v) => { const n = parseFloat(String(v).replace(/[^0-9.\-]/g,"")); return isFinite(n) ? n : 0; };
+const usd = (n) => (n < -0.5 ? "-" : "") + "$" + Math.round(Math.abs(n)).toLocaleString("en-US");
+const fmtRate = (n) => { let s = (+n).toFixed(3).replace(/0$/,""); return s + "%"; };
+const fmtPct = (n) => (+n).toFixed(2).replace(/\.?0+$/,"") + "%";
+const commas = (n) => Math.round(n).toLocaleString("en-US");
+
+function pmt(rate, years, loan){
+  const n = years * 12;
+  if (loan <= 0) return 0;
+  const i = rate / 1200;
+  if (i <= 0) return loan / n;
+  return loan * i / (1 - Math.pow(1 + i, -n));
+}
+
+/* ---------- Branding into page ---------- */
+function applyBranding(){
+  const first = CONFIG.name.split(" ")[0];
+  const map = {
+    name: CONFIG.name,
+    team: CONFIG.team,
+    tagline: CONFIG.tagline,
+    companyLine: CONFIG.company.replace(", LLC","") + " · " + CONFIG.division,
+    titleLine: `${CONFIG.title} · NMLS #${CONFIG.nmls}`,
+  };
+  document.querySelectorAll("[data-cfg]").forEach(el => { el.textContent = map[el.dataset.cfg] || ""; });
+  $("initials").textContent = CONFIG.initials;
+  $("emailLink").textContent = CONFIG.email;
+  $("emailLink").href = "mailto:" + CONFIG.email;
+  $("textLbl").textContent = "Text " + first;
+  $("footLO").textContent =
+    `${CONFIG.name}, ${CONFIG.title}, NMLS #${CONFIG.nmls} · ${CONFIG.team} · ${CONFIG.company}, NMLS #${CONFIG.companyNmls} · ${CONFIG.address}`;
+}
+
+/* ---------- Rates ---------- */
+let rates = { ...SAMPLE_RATES };
+let rateSource = {};          // key -> "live" | "sample"
+let liveMeta = null;          // { asOf }
+let activeKey = "conv30";
+
+function chipKeyFor(type, term){
+  if (term === 15) return "conv15";
+  return { conv:"conv30", fha:"fha30", va:"va30", jumbo:"jumbo30" }[type];
+}
+
+function renderChips(){
+  $("chips").innerHTML = CHIPS.map(c => `
+    <button type="button" class="chip ${c.key===activeKey?"active":""}" data-key="${c.key}">
+      ${c.label}<b>${rates[c.key]!=null ? fmtRate(rates[c.key]) : "—"}</b>${rateSource[c.key]==="sample"?'<span class="tag">sample</span>':""}
+    </button>`).join("");
+  $("chips").querySelectorAll(".chip").forEach(b => b.addEventListener("click", () => {
+    const c = CHIPS.find(x => x.key === b.dataset.key);
+    activeKey = c.key;
+    $("rate").value = rates[c.key];
+    $("term").value = String(c.term);
+    if (c.key === "conv15") { if ($("loanType").value !== "conv" && $("loanType").value !== "jumbo") $("loanType").value = "conv"; }
+    else $("loanType").value = c.type;
+    renderChips(); calc();
+  }));
+}
+
+function renderSampleEditor(){
+  $("sampleGrid").innerHTML = CHIPS.filter(c => rateSource[c.key]==="sample").map(c => `
+    <div><label for="s_${c.key}">${c.label}</label>
+    <div class="suffix"><input id="s_${c.key}" type="number" step="0.125" value="${rates[c.key]}"><span>%</span></div></div>`).join("");
+  CHIPS.forEach(c => {
+    const el = $("s_" + c.key);
+    if (el) el.addEventListener("input", () => {
+      rates[c.key] = num(el.value);
+      if (activeKey === c.key) $("rate").value = rates[c.key];
+      renderChips(); calc();
+    });
+  });
+}
+
+function setStatus(){
+  const live = Object.values(rateSource).some(v => v === "live");
+  const allSample = !live;
+  const anySample = Object.values(rateSource).some(v => v === "sample");
+  $("sampleBanner").style.display = allSample ? "block" : "none";
+  $("sampleEdit").style.display = anySample ? "block" : "none";
+  if (allSample) $("sampleEdit").open = true;
+  $("rateStatus").innerHTML = live
+    ? `<span class="dot live"></span> Live · Mortgage News Daily rate index${liveMeta && liveMeta.asOf ? " · updated " + liveMeta.asOf : ""}${anySample ? " · some rates are samples" : ""}`
+    : `<span class="dot sample"></span> Sample rates (live index unavailable)`;
+}
+
+async function loadRates(){
+  CHIPS.forEach(c => rateSource[c.key] = "sample");
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 9000);
+    const r = await fetch("/.netlify/functions/mnd-rates", { signal: ctrl.signal });
+    clearTimeout(t);
+    const d = await r.json();
+    if (!d.ok || !d.rates) throw new Error(d.error || "no rates");
+    CHIPS.forEach(c => {
+      const v = d.rates[c.key];
+      if (typeof v === "number" && v > 0) { rates[c.key] = v; rateSource[c.key] = "live"; }
+    });
+    liveMeta = { asOf: d.asOf };
+  } catch (e) { /* fall back to sample rates */ }
+  if (!$("rate").dataset.touched) $("rate").value = rates[activeKey];
+  renderChips(); renderSampleEditor(); setStatus(); calc();
+}
+
+/* ---------- Concession limits ---------- */
+function concessionLimit(type, use, downPct){
+  if (type === "conv"){
+    if (use === "inv") return { pct:2, why:"Conventional investment property" };
+    if (downPct < 10)  return { pct:3, why:"Conventional with less than 10% down" };
+    if (downPct < 25)  return { pct:6, why:"Conventional with 10–24.99% down" };
+    return { pct:9, why:"Conventional with 25%+ down" };
+  }
+  if (type === "fha")   return { pct:6, why:"FHA" };
+  if (type === "va")    return { pct:null, why:"VA", text:"VA: no cap on seller-paid closing costs in this tool." };
+  return { pct:null, why:"Jumbo", text:"Jumbo: seller concession limit varies by investor." };
+}
+
+/* ---------- Main calc ---------- */
+let bdK = 2;
+let lastSummary = "";
+
+function calc(){
+  const price  = Math.max(num($("price").value), 0);
+  const dp     = Math.min(Math.max(num($("downPct").value), 0), 100);
+  const type   = $("loanType").value;
+  const use    = $("propUse").value;
+  const term   = +$("term").value;
+  const ccPct  = Math.max(num($("ccPct").value), 0);
+  const rate   = Math.max(num($("rate").value), 0);
+  const credit = Math.max(num($("credit").value), 0);
+  const ptDrop = Math.max(num($("ptDrop").value), 0);
+  const maxPts = Math.max(num($("maxPts").value), 0);
+
+  const down = price * dp / 100;
+  const loan = price - down;
+  const cc   = price * ccPct / 100;
+  const base = pmt(rate, term, loan);
+
+  $("downAmt").textContent = usd(down) + " down";
+  $("ccAmt").textContent = "≈ " + usd(cc);
+  const ck = CHIPS.find(c => c.key === activeKey);
+  $("rateHint").textContent = ck && Math.abs(rates[ck.key] - rate) < 0.0005
+    ? `From index: ${ck.mnd}${rateSource[ck.key]==="sample" ? " (sample)" : ""}`
+    : "Custom rate";
+
+  // Slider range
+  const sMax = Math.max(Math.ceil(price * 0.10 / 500) * 500, Math.ceil(credit / 500) * 500, 5000);
+  $("creditRange").max = sMax;
+  $("creditRange").value = Math.min(credit, sMax);
+
+  // Use notes
+  const notes = [];
+  if ((type === "fha" || type === "va") && use !== "primary") notes.push(`${TYPE_NAME[type]} loans are generally for primary residences.`);
+  $("useNote").style.display = notes.length ? "block" : "none";
+  $("useNote").textContent = notes.join(" ");
+
+  // Concession limit
+  const lim = concessionLimit(type, use, dp);
+  let overLimit = false, limitAmt = null;
+  if (lim.pct != null){
+    limitAmt = price * lim.pct / 100;
+    $("limitLine").textContent = `Max seller concession: ${lim.pct}% of price = ${usd(limitAmt)} (${lim.why}). Credit is ${fmtPct(price ? credit / price * 100 : 0)} of price.`;
+    overLimit = credit > limitAmt + 0.5;
+  } else {
+    $("limitLine").textContent = lim.text;
+  }
+  $("limitWarn").style.display = overLimit ? "block" : "none";
+  if (overLimit) $("limitWarn").textContent =
+    `⚠ This credit is ${usd(credit - limitAmt)} over the ${lim.pct}% limit (${usd(limitAmt)}) for ${lim.why.toLowerCase().replace("conventional","Conventional").replace("fha","FHA")}. The excess would typically need to be a price reduction instead.`;
+
+  // Baseline
+  $("bLoan").textContent = usd(loan);
+  $("bRate").textContent = fmtRate(rate);
+  $("bPmt").textContent = usd(base);
+  $("bCC").textContent = usd(cc);
+
+  // 1) Price reduction
+  const nPrice = Math.max(price - credit, 0);
+  const nLoan  = nPrice * (1 - dp / 100);
+  const prPmt  = pmt(rate, term, nLoan);
+  const prSave = base - prPmt;
+  $("prPmt").innerHTML = usd(prPmt) + "<small> /mo</small>";
+  $("prPrice").textContent = usd(nPrice);
+  $("prLoan").textContent = usd(nLoan);
+  $("prSave").textContent = usd(prSave);
+  $("prDown").textContent = usd(credit * dp / 100);
+
+  // 2) Temporary buydown
+  const sched = [];
+  let tbCost = 0;
+  for (let y = 1; y <= bdK; y++){
+    const r = Math.max(rate - (bdK - y + 1), 0);
+    const p = pmt(r, term, loan);
+    const s = base - p;
+    tbCost += s * 12;
+    sched.push({ label:"Year " + y, r, p, s, a:s * 12 });
+  }
+  sched.push({ label:`Years ${bdK + 1}–${term}`, r:rate, p:base, s:0, a:0 });
+  const tb1 = sched[0];
+  const tbLeft = credit - tbCost;
+  $("tbPmt").innerHTML = usd(tb1.p) + "<small> /mo in year 1</small>";
+  $("tbRate").textContent = fmtRate(tb1.r);
+  $("tbSave").textContent = usd(tb1.s);
+  $("tbCost").textContent = usd(tbCost);
+  $("tbLeftLbl").textContent = tbLeft >= 0 ? "Credit left over" : "Additional credit needed";
+  $("tbLeft").textContent = usd(Math.abs(tbLeft));
+  $("tbLeft").className = tbLeft >= 0 ? "pos" : "neg";
+  const kName = { 1:"1-0", 2:"2-1", 3:"3-2-1" }[bdK];
+  $("schedTitle").textContent = kName;
+  $("schedBody").innerHTML = sched.map(x => `<tr><td>${x.label}</td><td>${fmtRate(x.r)}</td><td>${usd(x.p)}</td><td>${x.s ? usd(x.s) : "—"}</td><td>${x.a ? usd(x.a) : "—"}</td></tr>`).join("")
+    + `<tr><td><b>Total buydown cost</b></td><td></td><td></td><td></td><td><b>${usd(tbCost)}</b></td></tr>`;
+
+  // 3) Permanent buydown
+  const ptsByCredit = loan > 0 ? credit / loan * 100 : 0;
+  const ptsUsable = Math.min(ptsByCredit, maxPts);
+  const drop = ptDrop > 0 ? Math.round((ptsUsable * ptDrop) / 0.125) * 0.125 : 0;
+  const newRate = Math.max(rate - drop, 0);
+  const pts = ptDrop > 0 ? drop / ptDrop : 0;
+  const pbCost = pts / 100 * loan;
+  const pbPmt = pmt(newRate, term, loan);
+  const pbSave = base - pbPmt;
+  const pbLeft = credit - pbCost;
+  $("ptDropTxt").textContent = fmtPct(ptDrop);
+  $("pbPmt").innerHTML = usd(pbPmt) + "<small> /mo</small>";
+  $("pbRate").textContent = fmtRate(newRate) + (drop ? ` (−${fmtPct(drop)})` : "");
+  $("pbPts").textContent = pts.toFixed(3).replace(/\.?0+$/,"") || "0";
+  $("pbSave").textContent = usd(pbSave);
+  $("pbCost").textContent = usd(pbCost);
+  $("pbLeftLbl").textContent = pbLeft >= 0 ? "Credit left for closing costs" : "Additional credit needed";
+  $("pbLeft").textContent = usd(Math.abs(pbLeft));
+  $("pbLeft").className = pbLeft >= 0 ? "pos" : "neg";
+
+  // Comparison
+  const tb5 = sched.slice(0, -1).reduce((sum, x, i) => sum + (i < 5 ? x.a : 0), 0);
+  const rows = [
+    { name:"Price reduction", y1:prPmt, after:prPmt, s5:prSave * 60, left:0 },
+    { name:`${kName} temporary buydown`, y1:tb1.p, after:base, s5:tb5, left:tbLeft },
+    { name:"Permanent buydown", y1:pbPmt, after:pbPmt, s5:pbSave * 60, left:pbLeft },
+  ];
+  const best = rows.reduce((b, r, i) => r.s5 > rows[b].s5 + 0.5 ? i : b, 0);
+  $("cmpBody").innerHTML = rows.map((r, i) => `
+    <tr class="${i===best && credit>0 ? "best" : ""}">
+      <td>${r.name}${i===best && credit>0 ? '<span class="badge">Most savings</span>' : ""}</td>
+      <td>${usd(r.y1)}</td><td>${usd(r.after)}</td><td>${usd(r.s5)}</td>
+      <td class="${r.left < -0.5 ? "neg" : ""}">${r.left < -0.5 ? usd(r.left) + " short" : usd(r.left)}</td>
+    </tr>`).join("");
+  const cmpNotes = [`Baseline payment with no credit: ${usd(base)}/mo.`];
+  const maxLeft = Math.max(tbLeft, pbLeft);
+  if (maxLeft > cc + 0.5) cmpNotes.push(`Leftover credit above estimated closing costs (${usd(cc)}) generally can't be paid to the buyer as cash.`);
+  cmpNotes.push("5-yr savings compares payments only; leftover credit also reduces the buyer's cash to close.");
+  $("cmpNote").textContent = cmpNotes.join(" ");
+
+  // Summary for text/copy
+  const src = ck && Math.abs(rates[ck.key] - rate) < 0.0005
+    ? ` (${rateSource[ck.key]==="live" ? "MND " + ck.mnd + (liveMeta && liveMeta.asOf ? " " + liveMeta.asOf : "") : "sample rate"})`
+    : "";
+  lastSummary =
+`Hi ${CONFIG.name.split(" ")[0]}, here's a seller credit scenario:
+Price ${usd(price)}, ${fmtPct(dp)} down · ${TYPE_NAME[type]} · ${USE_NAME[use]} · ${term}-yr
+Note rate ${fmtRate(rate)}${src} · P&I ${usd(base)}/mo
+Seller credit: ${usd(credit)}${overLimit ? " (OVER " + lim.pct + "% limit)" : ""}
+
+1) Price reduction: ${usd(prPmt)}/mo (saves ${usd(prSave)}/mo)
+2) ${kName} buydown: yr-1 ${usd(tb1.p)}/mo at ${fmtRate(tb1.r)}, cost ${usd(tbCost)}, ${tbLeft >= 0 ? usd(tbLeft) + " left" : usd(-tbLeft) + " short"}
+3) Permanent: ${fmtRate(newRate)} → ${usd(pbPmt)}/mo (saves ${usd(pbSave)}/mo), cost ${usd(pbCost)}, ${pbLeft >= 0 ? usd(pbLeft) + " left" : usd(-pbLeft) + " short"}
+Most 5-yr savings: ${rows[best].name}
+
+Can you run real numbers on this?`;
+}
+
+/* ---------- Events ---------- */
+function moneyInput(el){
+  el.addEventListener("input", calc);
+  el.addEventListener("blur", () => { el.value = commas(num(el.value)); calc(); });
+  el.addEventListener("focus", () => { el.value = String(Math.round(num(el.value))); setTimeout(() => el.select(), 0); });
+}
+moneyInput($("price"));
+moneyInput($("credit"));
+$("creditRange").addEventListener("input", () => { $("credit").value = commas(num($("creditRange").value)); calc(); });
+["downPct","ccPct","ptDrop","maxPts","propUse"].forEach(id => $(id).addEventListener("input", calc));
+$("rate").addEventListener("input", () => { $("rate").dataset.touched = "1"; renderChips(); calc(); });
+["loanType","term"].forEach(id => $(id).addEventListener("change", () => {
+  activeKey = chipKeyFor($("loanType").value, +$("term").value);
+  $("rate").value = rates[activeKey];
+  renderChips(); calc();
+}));
+$("bdSeg").querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+  bdK = +b.dataset.k;
+  $("bdSeg").querySelectorAll("button").forEach(x => x.classList.toggle("on", x === b));
+  calc();
+}));
+
+function toast(msg){ const t = $("toast"); t.textContent = msg; t.classList.add("show"); setTimeout(() => t.classList.remove("show"), 1800); }
+
+$("textBtn").addEventListener("click", (e) => {
+  e.preventDefault();
+  calc();
+  const sep = /iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent) ? "&" : "?";
+  window.location.href = `sms:+1${CONFIG.cell}${sep}body=${encodeURIComponent(lastSummary)}`;
+});
+$("copyBtn").addEventListener("click", async () => {
+  calc();
+  try { await navigator.clipboard.writeText(lastSummary); }
+  catch (e) {
+    const ta = document.createElement("textarea"); ta.value = lastSummary; document.body.appendChild(ta);
+    ta.select(); document.execCommand("copy"); ta.remove();
+  }
+  toast("Summary copied");
+});
+
+applyBranding();
+$("rate").value = rates[activeKey];
+renderChips();
+calc();
+loadRates();
+</script>
+</body>
+</html>
